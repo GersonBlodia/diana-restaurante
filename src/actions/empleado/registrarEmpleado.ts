@@ -10,9 +10,9 @@ export interface Empleado{
     rol: string; 
     horario: string; 
     sueldo: number; 
-    contratoInicio:Date; 
-    contratoFinal: Date; 
-    diasTrabajo:string;
+    contratoInicio?:Date; 
+    contratoFinal?: Date; 
+    diasTrabajo?:string;
 }
 export const empleadoSchema = z.object({
   dni: z.string().length(8, "DNI inválido"),

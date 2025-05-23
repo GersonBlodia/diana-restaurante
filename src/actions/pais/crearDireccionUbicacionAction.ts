@@ -7,7 +7,7 @@ export const crearDireccionUbicacionAction = async (data: {
   idDistrito: number;
   detalleUbicacion: string;
 }) => {
-  try {
+   try {
     const direccion = await prisma.direccionUbicacion.create({
       data: {
         idDistrito: data.idDistrito,
@@ -15,9 +15,10 @@ export const crearDireccionUbicacionAction = async (data: {
       },
     });
 
+    console.log("Dirección creada:", direccion); // <-- imprime toda la info que devuelve
     return { ok: true, direccion };
   } catch (error) {
-    console.error('Error al crear DirecciónUbicación:', error);
-    return { ok: false, error: 'Error al crear la dirección' };
+    console.error("Error al crear DirecciónUbicación:", error);
+    return { ok: false, error: "Error al crear la dirección" };
   }
 };

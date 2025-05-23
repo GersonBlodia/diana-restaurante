@@ -64,6 +64,8 @@ import { Empleado, registrarEmpleado } from "@/actions/empleado/registrarEmplead
 import { actualizarEmpleado } from "@/actions/empleado/actualizarEmpleado"
 import { obtenerEmpleados } from "@/actions/empleado/get-empleado"
 import { eliminarEmpleado } from "@/actions/empleado/eliminarEmpleado"
+import { Rol } from "@prisma/client"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/UI/select"
 
 // Animation Variants
 const fadeIn = {
@@ -114,14 +116,17 @@ export function EmpleadoForm({ modo, empleado, onSuccess, onCancel }: EmpleadoFo
   const [popoverOpen, setPopoverOpen] = useState(false)
   const [selectedPersona, setSelectedPersona] = useState<PersonaDTO | null>(null)
   const [loading, setLoading] = useState(false)
-
+const roles:Rol[] = ["Administrador", "Asistente", "Cocinero", "Limpieza", "Mesero", "RRHH"];
   const { setPersona } = usePersonaStore()
   const { setSuccess, setError, successMessage, errorMessage } = useEmpleadoStore()
 
   useEffect(() => {
     setLoading(true)
     getPersonasDisponibles()
-       
+     .then(data => setPersonas(data))
+    .catch(() => setPersonas([]))
+    .finally(() => setLoading(false))
+ 
   }, [])
 
   useEffect(() => {
@@ -141,7 +146,9 @@ export function EmpleadoForm({ modo, empleado, onSuccess, onCancel }: EmpleadoFo
     setValue("dni", dni)
     try {
       setLoading(true)
+     
       const persona = await getPersonaPorDni(+dni)
+      console.log("persona" ,persona)
       setSelectedPersona(persona)
       setPersona(persona!)
       setModalOpen(true)
@@ -152,11 +159,15 @@ export function EmpleadoForm({ modo, empleado, onSuccess, onCancel }: EmpleadoFo
       setLoading(false)
     }
   }
-
+const handleRoleChange = (value: string) => {
+  setValue("rol", value); // Actualiza el valor del rol en el formulario
+};
   const onSubmit = async (data: FormValues) => {
     try {
       if (modo === "crear") {
-        await registrarEmpleado(data)
+        console.log("creando ....")
+        const empleados= await registrarEmpleado(data)
+       console.log("empleados :", empleados)
         setSuccess("Empleado registrado correctamente")
       } else if (modo === "editar" && empleado) {
         await actualizarEmpleado(empleado.id, data)
@@ -199,7 +210,7 @@ export function EmpleadoForm({ modo, empleado, onSuccess, onCancel }: EmpleadoFo
                       <span>{selectedPersona.dni}</span>
                       <span>-</span>
                       <span className="ml-2 truncate max-w-[200px]">
-                        {selectedPersona.nombre} {selectedPersona.apellidos}
+                        {selectedPersona.nombre} {selectedPersona.apellido}
                       </span>
                     </>
                   ) : (
@@ -237,9 +248,9 @@ export function EmpleadoForm({ modo, empleado, onSuccess, onCancel }: EmpleadoFo
           {personas.map((p) => (
             <CommandItem
               key={p.dni}
-              value={`${p.dni} ${p.nombre} ${p.apellidos}`}
+              value={`${p.dni} ${p.nombre} ${p.apellido}`}
               onSelect={() => {
-                handleDniSelect(p.dni)
+                handleDniSelect(p.dni.toString())
                 setPopoverOpen(false)
               }}
               className="mx-2 rounded-md py-2 px-3 aria-selected:bg-amber-50 hover:bg-amber-50 cursor-pointer transition-colors group"
@@ -259,7 +270,7 @@ export function EmpleadoForm({ modo, empleado, onSuccess, onCancel }: EmpleadoFo
                       {p.dni}
                     </span>
                     <span className="font-medium text-amber-900">
-                      {p.nombre} {p.apellidos}
+                      {p.nombre} {p.apellido}
                     </span>
                   </div>
                 </div>
@@ -303,45 +314,56 @@ export function EmpleadoForm({ modo, empleado, onSuccess, onCancel }: EmpleadoFo
             <Label htmlFor="rol" className="text-sm font-medium">
               rol
             </Label>
-            <Input
-              id="rol"
-              placeholder="Ej: Gerente, Analista, Desarrollador"
-              {...register("rol")}
-              className="w-full"
-            />
-            {errors.rol && (
-              <motion.p
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className="text-sm text-red-500"
-              >
-                {errors.rol.message}
-              </motion.p>
-            )}
+             <Select {...register("rol")}  onValueChange={handleRoleChange} >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Selecciona un rol" />
+          </SelectTrigger>
+          <SelectContent>
+            {roles.map((role) => (
+              <SelectItem key={role} value={role}>
+                {role}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+             {errors.rol && (
+          <motion.p
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="text-sm text-red-500"
+          >
+            {errors.rol.message}
+          </motion.p>
+        )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="fechaContrato" className="text-sm font-medium">
-              Fecha de Contrato
-            </Label>
-            <Input
-              id="fechaContrato"
-              type="date"
-              {...register("fechaContrato")}
-              className="w-full"
-            />
-            {errors.fechaContrato && (
-              <motion.p
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className="text-sm text-red-500"
-              >
-                   Selecciona Fecha de Contrato
-              </motion.p>
-            )}
-          </div>
+         <div className="space-y-2">
+  <Label htmlFor="fechaContrato" className="text-sm font-medium">
+    Fecha de Contrato
+  </Label>
+  <Input
+    id="fechaContrato"
+    type="date"
+    {...register("fechaContrato", {
+      required: "Fecha de contrato es requerida", 
+      validate: (value) => new Date(value) >= new Date() || "La fecha no puede ser anterior a la fecha actual"
+    })}
+    min={new Date().toISOString().split("T")[0]}  // Establece la fecha mínima a la fecha de hoy
+    className="w-full"
+  />
+  {errors.fechaContrato && (
+    <motion.p
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: "auto" }}
+      exit={{ opacity: 0, height: 0 }}
+      className="text-sm text-red-500"
+    >
+      {errors.fechaContrato.message}
+    </motion.p>
+  )}
+</div>
+
 
           <div className="space-y-2">
             <Label htmlFor="sueldo" className="text-sm font-medium">
@@ -687,12 +709,13 @@ export const EmpleadoTable = () => {
          <div className="mb-6 space-y-4">
       {/* Barra principal de búsqueda y filtros */}
      <SearchAndFilterBar
+      
        filterrol={filterrol}
        filteredEmpleados={filteredEmpleados}
        searchTerm={searchTerm}
        paginatedEmpleados={paginatedEmpleados}
        resetFilters={resetFilters}
-       setFilterrol={setFilterrol}
+       setFilterCargo={setFilterrol}
        setPage={setPage}
        setSearchTerm={setSearchTerm}
        uniquerols={uniquerols}

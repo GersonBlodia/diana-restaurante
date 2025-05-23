@@ -8,7 +8,7 @@ export interface PersonaDTO {
   idPersona: number
   nombre: string
   apellido: string
-  dni: number | null
+  dni: number ,
   telefono?: string | null
 }
 
@@ -19,6 +19,10 @@ export async function getPersonasDisponibles(): Promise<PersonaDTO[]> {
       where: {
         empleado: null, // solo personas sin relación con Empleado
         estado: true,
+        dni:{
+      not: null,         // DNI NO sea null (existe)
+      // opcionalmente podrías agregar condiciones numéricas si es string, pero aquí es Int? por lo que no es necesario.
+    },
       },
       select: {
         idPersona: true,
@@ -28,14 +32,18 @@ export async function getPersonasDisponibles(): Promise<PersonaDTO[]> {
         telefono: true,
       },
     })
-
-    return personas
+   const personasConDniNoNull = personas.map(({ dni, ...rest }) => ({
+  ...rest,
+  dni: dni!, // forzamos que no es null aquí (usar con cuidado)
+}));
+    return personasConDniNoNull;
   } catch (error) {
     console.error("Error al obtener personas disponibles:", error)
     throw new Error("No se pudo obtener personas disponibles")
   }
 }
 
+// Obtener persona por DNI
 // Obtener persona por DNI
 export async function getPersonaPorDni(dni: number): Promise<PersonaDTO | null> {
   try {
@@ -50,11 +58,23 @@ export async function getPersonaPorDni(dni: number): Promise<PersonaDTO | null> 
         dni: true,
         telefono: true,
       },
-    })
+    });
 
-    return persona
+    if (!persona) return null;
+
+    // Forzamos que dni no sea null (usar con cuidado)
+    if (persona.dni === null) {
+      // Aquí puedes manejar el caso, lanzar error o retornar null
+      return null;
+    }
+
+    // Retornamos el objeto con dni seguro no nulo
+    return {
+      ...persona,
+      dni: persona.dni, // ya sabemos que no es null
+    };
   } catch (error) {
-    console.error(`Error al obtener persona con DNI ${dni}:`, error)
-    throw new Error("No se pudo obtener la persona por DNI")
+    console.error(`Error al obtener persona con DNI ${dni}:`, error);
+    throw new Error("No se pudo obtener la persona por DNI");
   }
 }

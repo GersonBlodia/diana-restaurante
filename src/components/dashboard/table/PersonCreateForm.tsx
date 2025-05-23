@@ -115,7 +115,7 @@ export const PersonCreateForm = () => {
   const selectedProvincia = watch("idProvincia");
    
   useEffect(() => {
-    cargarDepartamentos(22);
+    cargarDepartamentos(1);
     cargarTiposDocumento();
   }, [cargarDepartamentos, cargarTiposDocumento]);
 
@@ -148,13 +148,13 @@ export const PersonCreateForm = () => {
       }
 
       const idDireccionUbicacion = resultadoDireccion?.direccion?.idDireccionUbicacion;
-
+      console.log({idDireccionUbicacion})
       // 2. Crear Persona con idDireccionUbicacion
       const resultadoPersona = await crearPersonaAction({
         nombre: data.nombre,
         apellido: data.apellido,
         idTipoDocumento: data.idTipoDocumento,
-        dni: selectedTipoDocumento === 91 ? Number(data.dni) : undefined,
+        dni: selectedTipoDocumento === 1 ? Number(data.dni) : undefined,
         telefono: data.telefono,
         genero: data.genero,
         fechaNacimiento: data.fechaNacimiento,
@@ -169,7 +169,7 @@ export const PersonCreateForm = () => {
       if(Number(personaCreada?.idTipoDocumento) !== 1 && archivoFile){
         const resultadoDocumento = await crearDocumentoAdjuntoAction({
           idPersona: personaCreada?.idPersona,
-          idTipoDocumentoAdjunto: 92,
+          idTipoDocumentoAdjunto: 2,
           archivo: archivoFile,
         });
 
@@ -248,8 +248,8 @@ export const PersonCreateForm = () => {
                             <SelectValue placeholder="Seleccione tipo de documento" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="91">DNI</SelectItem>
-                            <SelectItem value="92">Carné de Extranjería</SelectItem>
+                            <SelectItem value="1">DNI</SelectItem>
+                            <SelectItem value="2">Carné de Extranjería</SelectItem>
                           </SelectContent>
                         </Select>
                       )}
@@ -261,7 +261,7 @@ export const PersonCreateForm = () => {
 
                   {/* Número de DNI - Condicional */}
                   <AnimatePresence mode="wait">
-                    {selectedTipoDocumento === 91? (
+                    {selectedTipoDocumento === 1? (
                       <motion.div 
                         key="dni"
                         initial={{ opacity: 0, x: 20 }}

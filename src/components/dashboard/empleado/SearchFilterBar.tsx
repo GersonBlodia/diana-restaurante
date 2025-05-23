@@ -79,8 +79,11 @@ export const SearchAndFilterBar: React.FC<SearchAndFilterBarProps> = ({
   
   // Función para resetear filtros y animación
   const handleResetFilters = (): void => {
+     
     resetFilters();
     setAnimateFilter(false);
+   
+    
   };
   return (
     <div className="mb-6 space-y-4">

@@ -548,7 +548,7 @@ export const EmpleadoTable = () => {
     return empleados.filter(emp => {
       const matchesSearch = searchTerm === "" || 
         emp.persona.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        emp.persona.apellidos.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.persona.apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
         emp.persona.dni.includes(searchTerm)
       
       const matchesrol = filterrol === "" || emp.rol === filterrol

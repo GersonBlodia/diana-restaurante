@@ -17,29 +17,36 @@ export const authOptions: AuthOptions = {
         correo: { label: "Correo", type: "text" },
         contrasena: { label: "Contraseña", type: "password" },
       },
-      async authorize(credentials) {
-        if (!credentials?.correo || !credentials?.contrasena) return null;
+     async authorize(credentials) {
+  try {
+      if (!credentials?.correo || !credentials?.contrasena) throw new Error("Faltan datos");
 
-        const user = await prisma.usuario.findUnique({
-          where: { correo: credentials.correo },
-          include: { empleado: true },
-        });
 
-        if (!user || !user.isActive) return null;
+    const user = await prisma.usuario.findUnique({
+      where: { correo: credentials.correo },
+      include: { empleado: true },
+    });
 
-        const isValid = await bcrypt.compare(
-          credentials.contrasena,
-          user.contrasena
-        );
-        if (!isValid) return null;
+    if (!user || !user.isActive) throw new Error("Usuario no encontrado o inactivo");
 
-        return {
-          id: user.idUsuario.toString(),
-          email: user.correo,
-          userName: user.userName ?? "",
-          rol: user.empleado?.rol ?? "SinRol",
-        };
-      },
+    const isValid = await bcrypt.compare(
+      credentials.contrasena,
+      user.contrasena
+    );
+     if (!isValid) throw new Error("Contraseña incorrecta");
+
+    return {
+      id: user.idUsuario.toString(),
+      email: user.correo,
+      userName: user.userName ?? "",
+      rol: user.empleado?.rol ?? "SinRol",
+    };
+  } catch (error) {
+    console.error("Error en autorización:", error);
+    throw error;  
+  }
+}
+
     }),
   ],
   pages: {

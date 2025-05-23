@@ -1,10 +1,11 @@
  
 interface Country {
- 
+  idPais: number;
     nombrePais: string;
 }
   export const countries:Country[] = [
-    { nombrePais: "Perú" }
+    {idPais:1, nombrePais: "Perú" },
+    {idPais:2, nombrePais: "Chile" }
   ];
 
  

@@ -142,7 +142,7 @@ model Empleado {
   persona              Persona                @relation(fields: [idPersona], references: [idPersona])
   usuario              Usuario?
   sueldo               Float?
-  contratoInicio       DateTime? 
+  contratoInicio       DateTime?  @default(now())
   contratoFinal        DateTime?
   InfoEmpleadoRRHH     InfoEmpleadoRRHH?
   EvaluacionDesempeno  EvaluacionDesempeno[]

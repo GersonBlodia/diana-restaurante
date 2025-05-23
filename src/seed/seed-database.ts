@@ -1,211 +1,173 @@
+import prisma from "../lib/prisma";
 
-import bcrypt from 'bcryptjs';
+export type diasTrabajoemana =
+  | "Lunes"
+  | "Martes"
+  | "Miercoles"
+  | "Jueves"
+  | "Viernes"
+  | "Sabado"
+  | "Domingo";
 
-import prisma from '../lib/prisma';
-import { DepartamentoSeed } from './seed-departamento';
-import { DistritoData } from './seed-distrito';
-import { ProvinciaData } from './seed-provincia';
-import { DiaSemana, Genero, Rol } from '@prisma/client';
+import { FormatedDataDocumento } from "./seed-tipo-documento";
+import { FormatedDocumentoAdjunto } from "./seed-documento-adjunto";
+import { DepartamentoSeed } from "./seed-departamento";
+import { FormattedDistritoData } from "./seed-distrito";
+import { FormattedProvinciaData } from "./seed-provincia";
+import { formantDirecciones } from "./see-direccion";
+import { FormatedPersona } from "./seed-persona";
+import { empleadosData, empleadosDias } from "./seed-empleado";
+import { formantUsuario } from "./seed-usuario";
+import {
+  FormatedOrdenCompra,
+  FormatedProveedor,
+  FormatedTipoProveedor,
+} from "./seed-tipo-proveedor";
+import {
+  FormatedDetalleOrdenCompra,
+  FormatedInsumo,
+  FormatedTipoInsumo,
+  FormatedUnidadesMedida,
+} from "./seed-insumo";
+import {
+  FormatedAuditoriaInventario,
+  FormateddetalleAuditoriaInventarios,
+  Formatedinventarios,
+  Formatedmermas,
+  FormatedmovimientosInventario,
+} from "./seed-inventario";
+import {
+  FormatedMenus,
+  Formatedrecetas,
+  Formattedproductos,
+  FormattedtiposPlatillo,
+  FormattedtiposProducto,
+} from "./seed-producto";
 
 async function main() {
-  await prisma.empleadoDiaSemana.deleteMany();
+  await prisma.detallePedido.deleteMany();
+  await prisma.comprobante.deleteMany();
+  await prisma.venta.deleteMany();
+  await prisma.pago.deleteMany();
+  await prisma.pedido.deleteMany();
+  await prisma.recetaIngrediente.deleteMany();
+  await prisma.menu.deleteMany();
+  await prisma.producto.deleteMany();
+  await prisma.tipo_platillo.deleteMany();
+  await prisma.tipo_producto.deleteMany();
+
+  await prisma.detalleAuditoriaInventario.deleteMany();
+  await prisma.inventarioAuditoria.deleteMany();
+  await prisma.movimientoInventario.deleteMany();
+  await prisma.merma.deleteMany();
+  await prisma.inventario.deleteMany();
+  await prisma.detalleOrdenCompra.deleteMany();
+  await prisma.ordenCompra.deleteMany();
+  await prisma.insumo.deleteMany();
+  await prisma.tipo_insumo.deleteMany(); // Aquí agregas la eliminación de tipo_insumo
+  await prisma.unidadMedida.deleteMany(); // <<-- agregado aquí
+
+  await prisma.proveedores.deleteMany();
+  await prisma.tipo_proveedor.deleteMany();
+
+  await prisma.logUsuario.deleteMany();
+  await prisma.mensajeChat.deleteMany();
+  await prisma.notificacion.deleteMany();
+  await prisma.mensajeInterno.deleteMany();
   await prisma.usuario.deleteMany();
+  await prisma.empleadoCapacitacion.deleteMany();
+  await prisma.capacitacion.deleteMany();
+  await prisma.ausencia.deleteMany();
+  await prisma.historialEmpleado.deleteMany();
+  await prisma.evaluacionDesempeno.deleteMany();
+  await prisma.infoEmpleadoRRHH.deleteMany();
+  await prisma.empleadoDiaSemana.deleteMany();
   await prisma.empleado.deleteMany();
+  await prisma.puesto_trabajo.deleteMany();
+  await prisma.departamento_rrhh.deleteMany();
+
   await prisma.documentoAdjunto.deleteMany();
   await prisma.persona.deleteMany();
-  await prisma.ausencia.deleteMany();
-  await prisma.tipo_insumo.deleteMany();
+  await prisma.tipo_Documento_Adjunto.deleteMany();
+  await prisma.tipo_Documento.deleteMany();
+
   await prisma.direccionUbicacion.deleteMany();
   await prisma.distrito.deleteMany();
   await prisma.provincia.deleteMany();
   await prisma.departamento.deleteMany();
   await prisma.pais.deleteMany();
-  await prisma.tipo_Documento_Adjunto.deleteMany();
-  await prisma.tipo_Documento.deleteMany();
 
-  await prisma.tipo_Documento.createMany({
-    data: [
-      { nombreTipoDocumento: "DNI", descripcion: "Documento Nacional de Identidad para ciudadanos peruanos", nacionalidadAproximada: "Peruano" },
-      { nombreTipoDocumento: "Carné de Extranjería", descripcion: "Documento de identificación para extranjeros residentes", nacionalidadAproximada: "Extranjero" },
-      { nombreTipoDocumento: "Pasaporte", descripcion: "Documento internacional de viaje para peruanos y extranjeros", nacionalidadAproximada: "Ambos" },
-      { nombreTipoDocumento: "Permiso Temporal de Permanencia (PTP)", descripcion: "Documento temporal para extranjeros en proceso migratorio", nacionalidadAproximada: "Extranjero" },
-      { nombreTipoDocumento: "Cédula Diplomática", descripcion: "Documento de identidad para diplomáticos acreditados en el país", nacionalidadAproximada: "Extranjero" },
-    ]
-  });
-
+  //insertar datos de tipo documento
+  await prisma.tipo_Documento.createMany({ data: FormatedDataDocumento });
   await prisma.tipo_Documento_Adjunto.createMany({
-    data: [
-      { nombreTipo: "Pasaporte", descripcion: "Documento internacional para viajes" },
-      { nombreTipo: "Carné de Extranjería", descripcion: "Documento de identificación para extranjeros residentes" },
-      { nombreTipo: "Permiso Temporal de Permanencia (PTP)", descripcion: "Documento temporal para extranjeros" },
-      { nombreTipo: "Cédula Diplomática", descripcion: "Documento de identidad para diplomáticos" }
-    ]
+    data: FormatedDocumentoAdjunto,
   });
 
-  const pais = await prisma.pais.create({ data: { nombrePais: 'Peru' } });
-
-  const formattedDepartamentos = DepartamentoSeed.map(dep => ({ ...dep, idPais: pais.idPais }));
-  await prisma.departamento.createMany({ data: formattedDepartamentos });
-
-  const departamentos = await prisma.departamento.findMany();
-  const formattedProvincias = ProvinciaData.map(prov => ({
-    ...prov,
-    idDepartamento: departamentos[0].idDepartamento,
-  }));
-  await prisma.provincia.createMany({ data: formattedProvincias });
-
-  const provincias = await prisma.provincia.findMany();
-  const formattedDistritos = DistritoData.map(dist => ({
-    ...dist,
-    idProvincia: provincias[0].idProvincia,
-  }));
-  await prisma.distrito.createMany({ data: formattedDistritos });
-
-  const distritos = await prisma.distrito.findMany();
-  const direcciones = distritos.slice(0, 14).map((distrito, index) => ({
-    idDistrito: distrito.idDistrito,
-    detalleUbicacion: `Dirección ${28 + index}`
-  }));
-  await prisma.direccionUbicacion.createMany({ data: direcciones });
-
-  const tiposDoc = await prisma.tipo_Documento.findMany();
-  const ubicaciones = await prisma.direccionUbicacion.findMany();
-
-  const personasRaw = [
-    { dirIndex: 9, docIndex: 1, nombre: "sasha", apellido: "garcia", dni: 12125242, telefono: "2222277", genero: "Femenino" },
-    { dirIndex: 10, docIndex: 1, nombre: "Gerson", apellido: "vera", dni: 73482311, genero: "Masculino", fechaNacimiento: new Date("2000-10-10") },
-    { dirIndex: 11, docIndex: 2, nombre: "sdadd", apellido: "sdsd", genero: "No_Binario", fechaNacimiento: new Date("2333-02-23") },
-    { dirIndex: 12, docIndex: 1, nombre: "Gerson", apellido: "xsdadsda", dni: 45151059, genero: "Masculino", fechaNacimiento: new Date("0022-02-22") },
-    { dirIndex: 13, docIndex: 2, nombre: "Gerson", apellido: "vera", genero: "Masculino", fechaNacimiento: new Date("2222-02-22") },
-        { dirIndex: 14, docIndex: 1, nombre: "Jhon", apellido: "xsdadsda", dni: 74419269, genero: "Masculino", fechaNacimiento: new Date("0022-02-22") },
-
+  //traer los id de los paises
+  const paises = [
+    { idPais: 1, nombrePais: "Perú" },
+    { idPais: 2, nombrePais: "Chile" },
   ];
+  // Usar createMany para insertar países
+  await prisma.pais.createMany({ data: paises });
+  await prisma.departamento.createMany({ data: DepartamentoSeed });
 
-  const formattedPersonas = personasRaw.map(p => ({
-    idDireccionUbicacion: ubicaciones[p.dirIndex]?.idDireccionUbicacion,
-    idTipoDocumento: tiposDoc[p.docIndex - 1]?.idTipoDocumento,
-    nombre: p.nombre,
-    apellido: p.apellido,
-    telefono: p.telefono ?? '987654321',
-    dni: p.dni,
-    genero: p.genero as Genero,
-    fechaNacimiento: p.fechaNacimiento
-  }));
+  const provinciaValidas = FormattedProvinciaData.map(
+    ({ idDepartamento, nombreProvincia, idProvincia }) => ({
+      idDepartamento,
+      nombreProvincia,
+      idProvincia,
+    })
+  );
+  await prisma.provincia.createMany({ data: provinciaValidas });
+  await prisma.distrito.createMany({ data: FormattedDistritoData });
+  await prisma.direccionUbicacion.createMany({ data: formantDirecciones });
+  await prisma.persona.createMany({ data: FormatedPersona });
 
-  await prisma.persona.createMany({ data: formattedPersonas });
+  await prisma.empleado.createMany({
+    data: empleadosData,
+  });
+  await prisma.empleadoDiaSemana.createMany({
+    data: empleadosDias,
+  });
+  await prisma.usuario.createMany({ data: formantUsuario });
 
-  const personas = await prisma.persona.findMany();
+  //inventario
+  await prisma.tipo_proveedor.createMany({ data: FormatedTipoProveedor });
+  await prisma.proveedores.createMany({ data: FormatedProveedor });
+  await prisma.ordenCompra.createMany({ data: FormatedOrdenCompra });
 
-  const empleadosRaw = [
-    {
-      dni: 73482311,
-      rol: Rol.Administrador,
-      horario: '09:00 - 17:00',
-      dias: [DiaSemana.Lunes, DiaSemana.Martes, DiaSemana.Miercoles, DiaSemana.Jueves, DiaSemana.Viernes],
-    },
-    {
-      dni: 12125242,
-      rol: Rol.Mesero,
-      horario: '12:00 - 20:00',
-      dias: [DiaSemana.Martes, DiaSemana.Jueves, DiaSemana.Sabado],
-    },
-    {
-      dni: 45151059,
-      rol: Rol.Cocinero,
-      horario: '08:00 - 16:00',
-      dias: [DiaSemana.Lunes, DiaSemana.Martes, DiaSemana.Miercoles, DiaSemana.Jueves, DiaSemana.Viernes],
-    },
-       {
-      dni: 74419269,
-      rol: Rol.RRHH,
-      horario: '08:00 - 16:00',
-      dias: [DiaSemana.Lunes, DiaSemana.Martes, DiaSemana.Miercoles, DiaSemana.Jueves, DiaSemana.Viernes],
-    },
-    {
-      nombre: "sdadd",
-      apellido: "sdsd",
-      rol: Rol.RRHH,
-      horario: '09:00 - 15:00',
-      dias: [DiaSemana.Lunes, DiaSemana.Martes, DiaSemana.Miercoles],
-    },
-  ];
+  //insumos
 
-  for (const emp of empleadosRaw) {
-    const persona = emp.dni
-      ? personas.find(p => p.dni === emp.dni)
-      : personas.find(p =>
-          p.nombre.trim().toLowerCase() === emp.nombre?.trim().toLowerCase() &&
-          p.apellido.trim().toLowerCase() === emp.apellido?.trim().toLowerCase()
-        );
+  await prisma.tipo_insumo.createMany({ data: FormatedTipoInsumo });
+  await prisma.unidadMedida.createMany({ data: FormatedUnidadesMedida });
+  await prisma.insumo.createMany({ data: FormatedInsumo });
+  await prisma.detalleOrdenCompra.createMany({
+    data: FormatedDetalleOrdenCompra,
+  });
 
-    if (!persona) {
-      console.warn(`❌ Persona no encontrada para el empleado ${emp.dni ?? emp.nombre + ' ' + emp.apellido}`);
-      continue;
-    }
+  //inventario
+  await prisma.inventario.createMany({ data: Formatedinventarios });
+  await prisma.inventarioAuditoria.createMany({
+    data: FormatedAuditoriaInventario,
+  });
+  await prisma.detalleAuditoriaInventario.createMany({
+    data: FormateddetalleAuditoriaInventarios,
+  });
+  await prisma.movimientoInventario.createMany({
+    data: FormatedmovimientosInventario,
+  });
+  await prisma.merma.createMany({ data: Formatedmermas });
+  await prisma.tipo_producto.createMany({ data: FormattedtiposProducto });
+  await prisma.producto.createMany({ data: Formattedproductos });
+  await prisma.tipo_platillo.createMany({ data: FormattedtiposPlatillo });
+  await prisma.menu.createMany({ data: FormatedMenus });
+  await prisma.recetaIngrediente.createMany({ data: Formatedrecetas });
 
-    try {
-      await prisma.empleado.create({
-        data: {
-          idPersona: persona.idPersona,
-          rol: emp.rol,
-          horario: emp.horario,
-          estado: true,
-          diasTrabajo: {
-            create: emp.dias.map(d => ({ dia: d })),
-          },
-        },
-      });
-    } catch (error) {
-      console.error(`⚠️ Error al crear empleado para persona ${persona.nombre} ${persona.apellido}:`, error);
-    }
-  }
-
-  const empleados = await prisma.empleado.findMany({ include: { persona: true } });
-
-  const usuariosRaw = [
-    {
-      dni: 73482311,
-      correo: 'admin@example.com',
-      userName: 'admin',
-      contrasena: 'admin123'
-    },
-    {
-      dni: 12125242,
-      correo: 'cocinero@example.com',
-      userName: 'cocinero',
-      contrasena: 'cocinero456'
-    },
-    {
-      dni: 45151059,
-      correo: 'rrhh@example.com',
-      userName: 'rrhh',
-      contrasena: 'rrhh789'
-    }
-  ];
-
-  for (const usuario of usuariosRaw) {
-    const empleado = empleados.find(e => e.persona?.dni === usuario.dni);
-    if (!empleado) {
-      console.warn(`Empleado con DNI ${usuario.dni} no encontrado`);
-      continue;
-    }
-
-    const hashedPassword = await bcrypt.hash(usuario.contrasena, 12);
-    await prisma.usuario.create({
-      data: {
-        idEmpleado: empleado.idEmpleado,
-        correo: usuario.correo,
-        userName: usuario.userName,
-        contrasena: hashedPassword,
-        isActive: true
-      }
-    });
-  }
-
-  console.log('✅ Seed ejecutado correctamente');
+  console.log("✅ Seed ejecutado correctamente");
 }
 
 (() => {
-  if (process.env.NODE_ENV === 'production') return;
+  if (process.env.NODE_ENV === "production") return;
   main();
 })();

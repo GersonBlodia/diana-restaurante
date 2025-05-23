@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Empleado" ALTER COLUMN "contratoInicio" SET DEFAULT CURRENT_TIMESTAMP;

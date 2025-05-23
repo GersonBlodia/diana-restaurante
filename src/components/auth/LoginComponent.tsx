@@ -81,7 +81,7 @@ export const LuxoraLoginForm: React.FC = () => {
               }`}
           >
             <h1 className="text-xl   uppercase tracking-wider text-amber-900 font-bold">
-              Odonto Master
+              Restaurante Diana
             </h1>
           </div>
 
@@ -227,7 +227,7 @@ export const LuxoraLoginForm: React.FC = () => {
                 type="submit"
                 className="w-full bg-amber-800 text-white py-3 rounded-lg hover:bg-amber-900 hover:shadow-lg transform hover:-translate-y-0.5 transition-all font-medium"
               >
-                Login
+                Iniciar Sesion
               </button>
             </div>
           </form>
